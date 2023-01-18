@@ -180,7 +180,7 @@ public class CommonEventDispatcherImpl implements ModInitializer {
 
     public void onPlayerLogin(ServerGamePacketListenerImpl handler, PacketSender sender, MinecraftServer server) {
         // when the player login, check and give gifts for holiday
-        ModHolidays.welcome(handler.player);
+//        ModHolidays.welcome(handler.player);
     }
 
     public void onPlayerLogout(ServerGamePacketListenerImpl handler, MinecraftServer server) {

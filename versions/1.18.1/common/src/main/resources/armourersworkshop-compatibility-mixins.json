@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "moe.plushie.armourers_workshop.compatibility.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "client": [
+    "AbstractEntityRenderDispatcherMixin"
+  ],
+  "mixins": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

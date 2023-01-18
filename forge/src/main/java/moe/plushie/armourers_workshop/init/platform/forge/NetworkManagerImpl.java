@@ -18,6 +18,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.network.NetworkDirection;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.UUID;
@@ -73,7 +74,11 @@ public class NetworkManagerImpl extends AbstractForgeNetworkManager implements N
         @SubscribeEvent
         public void onServerEvent(final ClientCustomPayloadEvent event) {
             Context context = event.getSource().get();
+            NetworkDirection direction = context.getDirection();
+            System.out.println("ClientCustomPayloadEvent");
             ServerPlayer player = context.getSender();
+            System.out.println(direction);
+            System.out.println(player);
             if (player == null) {
                 return;
             }
@@ -85,14 +90,18 @@ public class NetworkManagerImpl extends AbstractForgeNetworkManager implements N
         @OnlyIn(value = Dist.CLIENT)
         @SubscribeEvent
         public void onClientEvent(final ServerCustomPayloadEvent event) {
+            System.out.println("ServerCustomPayloadEvent");
             if (event instanceof ServerCustomPayloadLoginEvent) {
                 return;
             }
             Player player = Minecraft.getInstance().player;
+            System.out.println(player);
             if (player == null) {
                 return;
             }
             Context context = event.getSource().get();
+            System.out.println(context.getSender());
+            System.out.println(context.getDirection());
             IClientPacketHandler packetHandler = this;
             merge(player.getUUID(), event.getPayload(), packet -> context.enqueueWork(() -> packet.accept(packetHandler, player)));
             context.setPacketHandled(true);

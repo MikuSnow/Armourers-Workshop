@@ -33,7 +33,6 @@ public class ArmourersWorkshop {
             ModPackets.init();
 
             ModEntityProfiles.init();
-            ModHolidays.init();
             ModPermissions.init();
             SkinningRecipes.init();
 

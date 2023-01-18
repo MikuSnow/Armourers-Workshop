@@ -16,14 +16,19 @@ public class NetworkManager {
     }
 
     public static void sendToTracking(final CustomPacket message, final Entity entity) {
+        System.out.println("sendToTracking");
+        System.out.println(message);
+        System.out.println(entity);
         IMPL.sendToTracking(message, entity);
     }
 
     public static void sendTo(final CustomPacket message, final ServerPlayer player) {
+        System.out.println("sendTo: " + player);
         IMPL.sendTo(message, player);
     }
 
     public static void sendToServer(final CustomPacket message) {
+        System.out.println("@@@@@@@@@@@@@@@@@@@@@sendToServer");
         IMPL.sendToServer(message);
     }
 

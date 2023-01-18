@@ -58,6 +58,8 @@ public class UpdateWardrobePacket extends CustomPacket {
     }
 
     public static UpdateWardrobePacket sync(SkinWardrobe wardrobe) {
+
+        System.out.println(wardrobe.serializeNBT());
         return new UpdateWardrobePacket(wardrobe, Mode.SYNC, wardrobe.serializeNBT(), null, null);
     }
 

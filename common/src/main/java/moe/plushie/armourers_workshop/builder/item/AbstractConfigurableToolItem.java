@@ -7,8 +7,6 @@ import moe.plushie.armourers_workshop.api.painting.IPaintingTool;
 import moe.plushie.armourers_workshop.api.painting.IPaintingToolProperty;
 import moe.plushie.armourers_workshop.builder.client.gui.PaintingToolWindow;
 import moe.plushie.armourers_workshop.core.item.FlavouredItem;
-import moe.plushie.armourers_workshop.init.ModHolidays;
-import moe.plushie.armourers_workshop.init.ModSounds;
 import moe.plushie.armourers_workshop.utils.TranslateUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -49,9 +47,6 @@ public abstract class AbstractConfigurableToolItem extends FlavouredItem impleme
         IRegistryKey<SoundEvent> soundEvent = getItemSoundEvent(context);
         if (soundEvent == null) {
             return;
-        }
-        if (ModHolidays.APRIL_FOOLS.isHolidayActive()) {
-            soundEvent = ModSounds.BOI;
         }
         float pitch = getItemSoundPitch(context);
         Level level = context.getLevel();

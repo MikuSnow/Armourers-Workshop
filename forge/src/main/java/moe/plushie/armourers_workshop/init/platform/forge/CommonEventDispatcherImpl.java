@@ -139,7 +139,7 @@ public class CommonEventDispatcherImpl extends AbstractForgeCommonEventDispatche
         @SubscribeEvent
         public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
             // when the player login, check and give gifts for holiday
-            ModHolidays.welcome(event.getPlayer());
+//            ModHolidays.welcome(event.getPlayer());
         }
 
         @SubscribeEvent
@@ -176,10 +176,10 @@ public class CommonEventDispatcherImpl extends AbstractForgeCommonEventDispatche
 
         @SubscribeEvent
         public void onEntityJoinWorld(EntityJoinWorldEvent event) {
+            Entity entity = event.getEntity();
             if (event.getWorld().isClientSide()) {
                 return;
             }
-            Entity entity = event.getEntity();
             SkinUtils.copySkinFromOwner(entity);
             if (entity instanceof ServerPlayer) {
                 ServerPlayer player = (ServerPlayer) entity;

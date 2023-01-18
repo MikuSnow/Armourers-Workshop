@@ -119,11 +119,15 @@ public class SkinWardrobe implements ITagRepresentable<CompoundTag> {
 //    }
 
     public void sendToServer() {
+        System.out.println("UpdateWardrobePacket send to Server");
         NetworkManager.sendToServer(UpdateWardrobePacket.sync(this));
     }
 
     public void broadcast() {
-        NetworkManager.sendToTracking(UpdateWardrobePacket.sync(this), getEntity());
+        UpdateWardrobePacket sync = UpdateWardrobePacket.sync(this);
+        System.out.println(sync);
+        System.out.println(getEntity());
+        NetworkManager.sendToTracking(sync, getEntity());
     }
 
     public void broadcast(ServerPlayer player) {
