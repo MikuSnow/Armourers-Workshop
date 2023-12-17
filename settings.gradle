@@ -4,6 +4,9 @@ pluginManagement {
         maven { url "https://maven.architectury.dev/" }
         maven { url "https://maven.minecraftforge.net/" }
         maven { url "https://repo.repsy.io/mvn/sagesse/core/" }
+        maven {
+            url "https://maven.theillusivec4.top/"
+        }
         gradlePluginPortal()
     }
 }

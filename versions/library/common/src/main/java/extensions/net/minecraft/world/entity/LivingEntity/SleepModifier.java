@@ -3,7 +3,6 @@ package extensions.net.minecraft.world.entity.LivingEntity;
 import moe.plushie.armourers_workshop.api.annotation.Available;
 import moe.plushie.armourers_workshop.utils.MathUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -13,16 +12,14 @@ import manifold.ext.rt.api.Extension;
 import manifold.ext.rt.api.This;
 
 @Extension
-@Available("[1.20, )")
+@Available("[1.16, 1.20)")
 public class SleepModifier {
 
     public static void stopSleeping(@This LivingEntity entity, BlockPos blockPos) {
-        entity.stopSleeping();
-        BlockState blockState = entity.getLevel().getBlockState(blockPos);
+        BlockState blockState = entity.level.getBlockState(blockPos);
         if (blockState.getBlock() instanceof BedBlock) {
-            Direction direction = blockState.getValue(BedBlock.FACING);
-            entity.getLevel().setBlock(blockPos, blockState.setValue(BedBlock.OCCUPIED, false), 3);
-            Vec3 vec3 = BedBlock.findStandUpPosition(entity.getType(), entity.getLevel(), blockPos, direction, entity.getYRot()).orElseGet(() -> {
+            entity.level.setBlock(blockPos, blockState.setValue(BedBlock.OCCUPIED, false), 3);
+            Vec3 vec3 = BedBlock.findStandUpPosition(entity.getType(), entity.level, blockPos, entity.getYRot()).orElseGet(() -> {
                 BlockPos blockPos2 = blockPos.above();
                 return new Vec3((double) blockPos2.getX() + 0.5, (double) blockPos2.getY() + 0.1, (double) blockPos2.getZ() + 0.5);
             });

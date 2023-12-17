@@ -9,10 +9,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
-@Available("[1.20, )")
+@Available("[1.18, 1.20)")
 @Environment(EnvType.CLIENT)
 public abstract class AbstractItemStackRendererImpl extends BlockEntityWithoutLevelRenderer {
 
@@ -29,7 +28,7 @@ public abstract class AbstractItemStackRendererImpl extends BlockEntityWithoutLe
     }
 
     @Override
-    public void renderByItem(ItemStack itemStack, ItemDisplayContext transformType, PoseStack poseStack, MultiBufferSource renderTypeBuffer, int light, int overlay) {
+    public void renderByItem(ItemStack itemStack, ItemTransforms.TransformType transformType, PoseStack poseStack, MultiBufferSource renderTypeBuffer, int light, int overlay) {
         this.renderByItem(itemStack, ItemTransforms.ofType(transformType), poseStack, renderTypeBuffer, light, overlay);
     }
 }

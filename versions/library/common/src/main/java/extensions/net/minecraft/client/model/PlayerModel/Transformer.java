@@ -1,15 +1,15 @@
 package extensions.net.minecraft.client.model.PlayerModel;
 
-import manifold.ext.rt.api.Extension;
-import manifold.ext.rt.api.This;
 import moe.plushie.armourers_workshop.api.annotation.Available;
 import moe.plushie.armourers_workshop.utils.MathUtils;
 import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.LivingEntity;
 
-@Available("[1.20, )")
+import manifold.ext.rt.api.Extension;
+import manifold.ext.rt.api.This;
+
 @Extension
+@Available("[1.16, 1.20)")
 public class Transformer {
 
     public static <T extends LivingEntity> void transformFrom(@This PlayerModel<T> model, T entity, float g) {
@@ -38,10 +38,10 @@ public class Transformer {
             k = j - h;
         }
         float m = MathUtils.lerp(g, entity.xRotO, entity.getXRot());
-        if (LivingEntityRenderer.isEntityUpsideDown(entity)) {
-            m *= -1.0f;
-            k *= -1.0f;
-        }
+//        if (LivingEntityRenderer.isEntityUpsideDown(entity)) {
+//            m *= -1.0f;
+//            k *= -1.0f;
+//        }
 //        if (entity.hasPose(Pose.SLEEPING) && (direction = entity.getBedOrientation()) != null) {
 //            n = entity.getEyeHeight(Pose.STANDING) - 0.1f;
 //        }
@@ -53,8 +53,8 @@ public class Transformer {
         float n = 0.0f;
         float o = 0.0f;
         if (!entity.isPassenger() && entity.isAlive()) {
-            n = entity.walkAnimation.speed(g);
-            o = entity.walkAnimation.position(g);
+            n = MathUtils.lerp(g, entity.animationSpeedOld, entity.animationSpeed);
+            o = entity.animationPosition - entity.animationSpeed * (1.0f - g);
             if (entity.isBaby()) {
                 o *= 3.0f;
             }

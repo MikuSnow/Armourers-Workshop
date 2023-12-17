@@ -7,24 +7,25 @@ import moe.plushie.armourers_workshop.init.platform.forge.NotificationCenterImpl
 import moe.plushie.armourers_workshop.init.provider.ClientNativeProvider;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.ModelEvent;
-import net.minecraftforge.client.event.RegisterColorHandlersEvent;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.event.RenderHighlightEvent;
+import net.minecraftforge.client.event.ColorHandlerEvent;
+import net.minecraftforge.client.event.DrawSelectionEvent;
+import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
+import net.minecraftforge.client.model.ForgeModelBakery;
 
 import java.util.function.Consumer;
 
 import manifold.ext.rt.api.Extension;
 import manifold.ext.rt.api.ThisClass;
 
-@Available("[1.19, )")
+@Available("[1.18, 1.19)")
 @Extension
 public class ClientEventProvider {
 
     public static void willRenderBlockHighlightFO(@ThisClass Class<?> clazz, ClientNativeProvider.RenderBlockHighlight renderer) {
-        NotificationCenterImpl.observer(RenderHighlightEvent.Block.class, event -> {
+        NotificationCenterImpl.observer(DrawSelectionEvent.HighlightBlock.class, event -> {
             renderer.render(event.getTarget(), event.getCamera(), event.getPoseStack(), event.getMultiBufferSource());
         });
     }
@@ -42,28 +43,28 @@ public class ClientEventProvider {
     }
 
     public static void willPlayerEnterFO(@ThisClass Class<?> clazz, Consumer<Player> consumer) {
-        NotificationCenterImpl.observer(ClientPlayerNetworkEvent.LoggingIn.class, consumer, ClientPlayerNetworkEvent::getPlayer);
+        NotificationCenterImpl.observer(ClientPlayerNetworkEvent.LoggedInEvent.class, consumer, ClientPlayerNetworkEvent::getPlayer);
     }
 
     public static void willPlayerLeaveFO(@ThisClass Class<?> clazz, Consumer<Player> consumer) {
-        NotificationCenterImpl.observer(ClientPlayerNetworkEvent.LoggingOut.class, consumer, ClientPlayerNetworkEvent::getPlayer);
+        NotificationCenterImpl.observer(ClientPlayerNetworkEvent.LoggedOutEvent.class, consumer, ClientPlayerNetworkEvent::getPlayer);
     }
 
 
     public static void willRegisterItemColorFO(@ThisClass Class<?> clazz, Consumer<ClientNativeProvider.ItemColorRegistry> consumer) {
-        NotificationCenterImpl.observer(RegisterColorHandlersEvent.Item.class, consumer, event -> (provider, values) -> event.getItemColors().register(provider::getTintColor, values));
+        NotificationCenterImpl.observer(ColorHandlerEvent.Item.class, consumer, event -> (provider, values) -> event.getItemColors().register(provider::getTintColor, values));
     }
 
     public static void willRegisterBlockColorFO(@ThisClass Class<?> clazz, Consumer<ClientNativeProvider.BlockColorRegistry> consumer) {
-        NotificationCenterImpl.observer(RegisterColorHandlersEvent.Block.class, consumer, event -> (provider, values) -> event.getBlockColors().register(provider::getTintColor, values));
+        NotificationCenterImpl.observer(ColorHandlerEvent.Block.class, consumer, event -> (provider, values) -> event.getBlockColors().register(provider::getTintColor, values));
     }
 
     public static void willRegisterModelFO(@ThisClass Class<?> clazz, Consumer<ClientNativeProvider.ModelRegistry> consumer) {
-        NotificationCenterImpl.observer(ModelEvent.RegisterAdditional.class, consumer, event -> event::register);
+        NotificationCenterImpl.observer(ModelRegistryEvent.class, consumer, event -> ForgeModelBakery::addSpecialModel);
     }
 
     public static void willRegisterKeyMappingFO(@ThisClass Class<?> clazz, Consumer<ClientNativeProvider.KeyMappingRegistry> consumer) {
-        NotificationCenterImpl.observer(RegisterKeyMappingsEvent.class, consumer, event -> event::register);
+        consumer.accept(ClientRegistry::registerKeyBinding);
     }
 
     public static void willRegisterItemPropertyFO(@ThisClass Class<?> clazz, Consumer<ClientNativeProvider.ItemPropertyRegistry> consumer) {

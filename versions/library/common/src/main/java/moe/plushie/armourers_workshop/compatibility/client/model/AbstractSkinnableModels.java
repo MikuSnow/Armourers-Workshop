@@ -4,12 +4,9 @@ import moe.plushie.armourers_workshop.api.annotation.Available;
 import moe.plushie.armourers_workshop.core.client.model.FirstPersonPlayerModel;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.model.AgeableListModel;
-import net.minecraft.client.model.AllayModel;
 import net.minecraft.client.model.ChickenModel;
 import net.minecraft.client.model.CreeperModel;
 import net.minecraft.client.model.GhastModel;
-import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.IllagerModel;
 import net.minecraft.client.model.IronGolemModel;
@@ -19,7 +16,7 @@ import net.minecraft.client.model.VillagerModel;
 import net.minecraft.client.model.ZombieVillagerModel;
 
 @SuppressWarnings("rawtypes")
-@Available("[1.19, )")
+@Available("[1.16, 1.19)")
 @Environment(EnvType.CLIENT)
 public class AbstractSkinnableModels {
 
@@ -39,5 +36,6 @@ public class AbstractSkinnableModels {
     public static final Class<ChickenModel> CHICKEN = ChickenModel.class;
     public static final Class<CreeperModel> CREEPER = CreeperModel.class;
 
-    public static final Class<AllayModel> ALLAY = AllayModel.class;
+    // a null to indicate the model can't be supported in this version.
+    public static final Class<SlimeModel> ALLAY = null;
 }

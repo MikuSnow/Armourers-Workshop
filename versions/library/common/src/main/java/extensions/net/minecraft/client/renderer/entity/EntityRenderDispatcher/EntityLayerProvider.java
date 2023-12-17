@@ -19,19 +19,19 @@ import manifold.ext.rt.api.Extension;
 import manifold.ext.rt.api.ThisClass;
 
 @Extension
-@Available("[1.20, )")
+@Available("[1.18, 1.19)")
 public class EntityLayerProvider {
 
     public static <E extends LivingEntity, Q extends EntityModel<E>> AbstractEntityRendererLayerProvider createLayerProvider(@ThisClass Class<?> clazz, LivingEntityRenderer<E, Q> renderer) {
         return new AbstractEntityRendererLayerProvider() {
             @Override
             public <T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>> RenderLayer<T, M> createHumanoidArmorLayer(Context context, A innerModel, A outerModel) {
-                return new HumanoidArmorLayer<>(ObjectUtils.unsafeCast(renderer), innerModel, outerModel, context.getModelManager());
+                return new HumanoidArmorLayer<>(ObjectUtils.unsafeCast(renderer), innerModel, outerModel);
             }
 
             @Override
             public <T extends LivingEntity, M extends EntityModel<T> & ArmedModel> RenderLayer<T, M> createItemInHandLayer(Context context) {
-                return new ItemInHandLayer<>(ObjectUtils.unsafeCast(renderer), context.getItemInHandRenderer());
+                return new ItemInHandLayer<>(ObjectUtils.unsafeCast(renderer));
             }
 
             @Override
@@ -41,7 +41,7 @@ public class EntityLayerProvider {
 
             @Override
             public <T extends LivingEntity, M extends EntityModel<T> & HeadedModel> RenderLayer<T, M> createCustomHeadLayer(Context context) {
-                return new CustomHeadLayer<>(ObjectUtils.unsafeCast(renderer), context.getModelSet(), context.getItemInHandRenderer());
+                return new CustomHeadLayer<>(ObjectUtils.unsafeCast(renderer), context.getModelSet());
             }
         };
     }

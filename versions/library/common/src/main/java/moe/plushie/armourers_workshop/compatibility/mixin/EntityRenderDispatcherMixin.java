@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Available("[1.19, )")
+@Available("[1.18, 1.19)")
 @Mixin(EntityRenderDispatcher.class)
 public class EntityRenderDispatcherMixin {
 

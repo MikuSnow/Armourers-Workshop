@@ -4,12 +4,13 @@ import com.google.gson.JsonObject;
 import moe.plushie.armourers_workshop.api.annotation.Available;
 import moe.plushie.armourers_workshop.api.common.IArgumentSerializer;
 import moe.plushie.armourers_workshop.api.common.IArgumentType;
-import net.minecraft.commands.CommandBuildContext;
-import net.minecraft.commands.synchronization.ArgumentTypeInfo;
+import net.minecraft.commands.synchronization.ArgumentSerializer;
+import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 
-@Available("[1.19, )")
-public class AbstractArgumentTypeInfo<A extends IArgumentType<?>> implements ArgumentTypeInfo<A, AbstractArgumentTypeInfo.Template<A>> {
+@Available("[1.16, 1.19)")
+public class AbstractArgumentTypeInfo<A extends IArgumentType<?>> implements ArgumentSerializer<A> {
 
     private final IArgumentSerializer<A> serializer;
 
@@ -17,44 +18,22 @@ public class AbstractArgumentTypeInfo<A extends IArgumentType<?>> implements Arg
         this.serializer = serializer;
     }
 
-    @Override
-    public void serializeToNetwork(Template<A> template, FriendlyByteBuf friendlyByteBuf) {
-        serializer.serializeToNetwork(template.instance, friendlyByteBuf);
+    public static <T extends IArgumentType<?>> void register(ResourceLocation registryName, Class<T> argumentType, IArgumentSerializer<T> argumentSerializer) {
+        ArgumentTypes.register(registryName.toString(), argumentType, new AbstractArgumentTypeInfo<>(argumentSerializer));
     }
 
     @Override
-    public Template<A> deserializeFromNetwork(FriendlyByteBuf friendlyByteBuf) {
-        return unpack(serializer.deserializeFromNetwork(friendlyByteBuf));
+    public void serializeToNetwork(A argumentType, FriendlyByteBuf friendlyByteBuf) {
+        serializer.serializeToNetwork(argumentType, friendlyByteBuf);
     }
 
     @Override
-    public void serializeToJson(Template<A> template, JsonObject jsonObject) {
-        serializer.serializeToJson(template.instance, jsonObject);
+    public A deserializeFromNetwork(FriendlyByteBuf friendlyByteBuf) {
+        return serializer.deserializeFromNetwork(friendlyByteBuf);
     }
 
     @Override
-    public Template<A> unpack(A argumentType) {
-        return new Template<>(argumentType, this);
-    }
-
-    public static class Template<A extends IArgumentType<?>> implements ArgumentTypeInfo.Template<A> {
-
-        private final A instance;
-        private final AbstractArgumentTypeInfo<A> argumentType;
-
-        public Template(A instance, AbstractArgumentTypeInfo<A> argumentType) {
-            this.instance = instance;
-            this.argumentType = argumentType;
-        }
-
-        @Override
-        public A instantiate(CommandBuildContext commandBuildContext) {
-            return instance;
-        }
-
-        @Override
-        public ArgumentTypeInfo<A, ?> type() {
-            return argumentType;
-        }
+    public void serializeToJson(A argumentType, JsonObject jsonObject) {
+        serializer.serializeToJson(argumentType, jsonObject);
     }
 }

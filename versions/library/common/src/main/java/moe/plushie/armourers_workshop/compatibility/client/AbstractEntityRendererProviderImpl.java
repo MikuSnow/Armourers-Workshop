@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.Entity;
 
-@Available("[1.19,)")
+@Available("[1.18, 1.19)")
 public interface AbstractEntityRendererProviderImpl {
 
     interface Provider<T extends Entity> extends AbstractEntityRendererProviderImpl {
@@ -26,8 +26,6 @@ public interface AbstractEntityRendererProviderImpl {
         public Context(Minecraft minecraft) {
             super(minecraft.getEntityRenderDispatcher(),
                     minecraft.getItemRenderer(),
-                    minecraft.getBlockRenderer(),
-                    minecraft.getEntityRenderDispatcher().getItemInHandRenderer(),
                     minecraft.getResourceManager(),
                     minecraft.getEntityModels(),
                     minecraft.font);
@@ -36,8 +34,6 @@ public interface AbstractEntityRendererProviderImpl {
         public Context(EntityRendererProvider.Context impl) {
             super(impl.getEntityRenderDispatcher(),
                     impl.getItemRenderer(),
-                    impl.getBlockRenderDispatcher(),
-                    impl.getItemInHandRenderer(),
                     impl.getResourceManager(),
                     impl.getModelSet(),
                     impl.getFont());

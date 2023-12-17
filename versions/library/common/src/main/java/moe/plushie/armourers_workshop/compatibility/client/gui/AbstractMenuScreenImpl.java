@@ -2,35 +2,38 @@ package moe.plushie.armourers_workshop.compatibility.client.gui;
 
 import com.apple.library.coregraphics.CGGraphicsContext;
 import com.apple.library.uikit.UIView;
+import com.mojang.blaze3d.vertex.PoseStack;
 import moe.plushie.armourers_workshop.api.annotation.Available;
+import moe.plushie.armourers_workshop.utils.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.ComponentPath;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.gui.narration.NarratableEntry;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.navigation.FocusNavigationEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import org.jetbrains.annotations.Nullable;
 
-@Available("[1.20, )")
+import java.util.List;
+
+@Available("[1.18, 1.20)")
 @Environment(EnvType.CLIENT)
 public abstract class AbstractMenuScreenImpl<T extends AbstractContainerMenu> extends AbstractContainerScreen<T> {
 
     public AbstractMenuScreenImpl(T menu, Inventory inventory, Component component) {
         super(menu, inventory, component);
-        addWidget(new TabEventProxy());
     }
 
     public void renderInView(UIView view, int zLevel, int mouseX, int mouseY, float partialTicks, CGGraphicsContext context) {
-        GuiGraphics graphics = AbstractGraphicsRenderer.of(context);
-        super.render(graphics, mouseX, mouseY, partialTicks);
-        super.renderTooltip(graphics, mouseX, mouseY);
+        PoseStack poseStack = AbstractGraphicsRenderer.of(context);
+        PoseStack modelViewStack = RenderSystem.getModelViewStack();
+        modelViewStack.pushPose();
+        modelViewStack.translate(0, 0, zLevel);
+        RenderSystem.applyModelViewMatrix();
+        super.render(poseStack, mouseX, mouseY, partialTicks);
+        modelViewStack.popPose();
+        RenderSystem.applyModelViewMatrix();
+        super.renderTooltip(poseStack, mouseX, mouseY);
     }
 
     public void render(CGGraphicsContext context, int mouseX, int mouseY, float partialTicks) {
@@ -54,64 +57,26 @@ public abstract class AbstractMenuScreenImpl<T extends AbstractContainerMenu> ex
     }
 
     @Override
-    public final void render(GuiGraphics context, int mouseX, int mouseY, float partialTicks) {
-        this.render(AbstractGraphicsRenderer.of(font, context, mouseX, mouseY, partialTicks), mouseX, mouseY, partialTicks);
+    public final void render(PoseStack poseStack, int i, int j, float f) {
+        this.render(AbstractGraphicsRenderer.of(this, font, poseStack, i, j, f), i, j, f);
     }
 
     @Override
-    public final void renderLabels(GuiGraphics context, int mouseX, int mouseY) {
-        this.renderLabels(AbstractGraphicsRenderer.of(font, context, mouseX, mouseY, 0), mouseX, mouseY);
+    protected final void renderLabels(PoseStack poseStack, int i, int j) {
+        this.renderLabels(AbstractGraphicsRenderer.of(this, font, poseStack, i, j, 0), i, j);
     }
 
     @Override
-    public final void renderTooltip(GuiGraphics context, int mouseX, int mouseY) {
-        this.renderTooltip(AbstractGraphicsRenderer.of(font, context, mouseX, mouseY, 0), mouseX, mouseY);
+    protected final void renderTooltip(PoseStack poseStack, int i, int j) {
+        this.renderTooltip(AbstractGraphicsRenderer.of(this, font, poseStack, i, j, 0), i, j);
     }
 
     @Override
-    protected void renderBg(GuiGraphics context, float f, int i, int j) {
+    protected final void renderBg(PoseStack poseStack, float f, int i, int j) {
         // ignored
     }
 
-    public boolean changeFocus(boolean bl) {
-        return false;
-    }
-
-    /**
-     * se use own GUI rendering system,
-     * but vanilla events are different.
-     * so we need a proxy to forward the tab event.
-     */
-    public class TabEventProxy implements GuiEventListener, NarratableEntry {
-
-        @Override
-        public void setFocused(boolean bl) {
-        }
-
-        @Override
-        public boolean isFocused() {
-            return false;
-        }
-
-        @Override
-        public NarrationPriority narrationPriority() {
-            return NarrationPriority.NONE;
-        }
-
-        @Override
-        public void updateNarration(NarrationElementOutput narrationElementOutput) {
-        }
-
-        @Nullable
-        @Override
-        public ComponentPath nextFocusPath(FocusNavigationEvent focusNavigationEvent) {
-            if (focusNavigationEvent instanceof FocusNavigationEvent.TabNavigation) {
-                boolean value = ((FocusNavigationEvent.TabNavigation) focusNavigationEvent).forward();
-                if (changeFocus(value)) {
-                    return ComponentPath.leaf(this);
-                }
-            }
-            return null;
-        }
+    public void _renderTooltip(PoseStack poseStack, List<? extends FormattedCharSequence> texts, int mouseX, int mouseY) {
+        this.renderTooltip(poseStack, texts, mouseX, mouseY);
     }
 }

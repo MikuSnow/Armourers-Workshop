@@ -1,16 +1,31 @@
 package moe.plushie.armourers_workshop.init.platform.forge.proxy;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import moe.plushie.armourers_workshop.builder.client.render.PaintingHighlightPlacementRenderer;
 import moe.plushie.armourers_workshop.compatibility.api.AbstractItemTransformType;
+import moe.plushie.armourers_workshop.core.capability.SkinWardrobe;
 import moe.plushie.armourers_workshop.core.client.render.HighlightPlacementRenderer;
+import moe.plushie.armourers_workshop.core.data.LocalDataService;
+import moe.plushie.armourers_workshop.core.data.color.ColorScheme;
+import moe.plushie.armourers_workshop.core.data.slot.SkinSlotType;
+import moe.plushie.armourers_workshop.core.skin.SkinDescriptor;
+import moe.plushie.armourers_workshop.core.skin.SkinLoader;
+import moe.plushie.armourers_workshop.core.skin.data.SkinServerType;
 import moe.plushie.armourers_workshop.init.ModConfig;
 import moe.plushie.armourers_workshop.init.ModItems;
+import moe.plushie.armourers_workshop.init.ModLog;
 import moe.plushie.armourers_workshop.init.client.ClientWardrobeHandler;
 import moe.plushie.armourers_workshop.init.environment.EnvironmentExecutor;
 import moe.plushie.armourers_workshop.init.environment.EnvironmentType;
+import moe.plushie.armourers_workshop.init.platform.EnvironmentManager;
 import moe.plushie.armourers_workshop.init.platform.forge.NotificationCenterImpl;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Registry;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -21,9 +36,18 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 
 import manifold.ext.rt.api.auto;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkInstance;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
+
+import java.nio.charset.StandardCharsets;
+import java.util.function.Supplier;
 
 @OnlyIn(Dist.CLIENT)
 public class ClientProxyImpl {
+    private static SimpleChannel channel;
 
     public static void init() {
         EnvironmentExecutor.willInit(EnvironmentType.CLIENT);
@@ -78,5 +102,49 @@ public class ClientProxyImpl {
                 event.setCanceled(true);
             });
         });
+
+        String PROTOCOL_VERSION = "1";
+        channel = NetworkRegistry.newSimpleChannel(
+                new ResourceLocation("heypixel", "armourers_workshop"),
+                () -> PROTOCOL_VERSION,
+                PROTOCOL_VERSION::equals,
+                PROTOCOL_VERSION::equals
+        );
+        EnvironmentExecutor.didInit(EnvironmentType.CLIENT, () -> ClientProxyImpl::setupChannels);
+    }
+
+    private static void setupChannels() {
+        ModLog.info("正在 初始化 监听频道！！！！！！！！！！！！！");
+        LocalDataService.start(EnvironmentManager.getSkinLibraryDirectory());
+        SkinLoader.getInstance().prepare(SkinServerType.CLIENT);
+        SkinLoader.getInstance().start();
+        channel.registerMessage(233, String.class, ClientProxyImpl::enc, ClientProxyImpl::dec, ClientProxyImpl::proc);
+    }
+
+    private static void enc(String str, FriendlyByteBuf buffer) {
+        buffer.writeBytes(str.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static String dec(FriendlyByteBuf buffer) {
+        return buffer.toString(StandardCharsets.UTF_8);
+    }
+
+    private static void proc(String str, Supplier<NetworkEvent.Context> supplier) {
+        NetworkEvent.Context context = supplier.get();
+        context.enqueueWork(() -> {
+            // 处理数据包内容
+            if (Minecraft.getInstance().player == null) {
+                return;
+            }
+            SkinWardrobe wardrobe = SkinWardrobe.of(Minecraft.getInstance().player);
+            if (wardrobe == null) {
+                ModLog.info("衣橱为空！");
+            } else {
+                SkinDescriptor descriptor = SkinLoader.getInstance().loadSkinFromDB("/downloads/17756 - Kasodani Kyouko 幽谷响子.armour", ColorScheme.EMPTY, false);
+                ItemStack itemStack = descriptor.asItemStack();
+                wardrobe.setItem(SkinSlotType.OUTFIT, 0, itemStack);
+            }
+        });
+        context.setPacketHandled(true);
     }
 }

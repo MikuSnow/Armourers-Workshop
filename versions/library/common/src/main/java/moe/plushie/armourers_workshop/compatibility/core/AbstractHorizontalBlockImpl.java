@@ -10,7 +10,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootContext;
-import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParam;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
@@ -18,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-@Available("[1.20, )")
+@Available("[1.16, 1.20)")
 public abstract class AbstractHorizontalBlockImpl extends HorizontalDirectionalBlock {
 
     public AbstractHorizontalBlockImpl(Properties properties) {
@@ -26,7 +25,7 @@ public abstract class AbstractHorizontalBlockImpl extends HorizontalDirectionalB
     }
 
     @Override
-    public final List<ItemStack> getDrops(BlockState blockState, LootParams.Builder builder) {
+    public final List<ItemStack> getDrops(BlockState blockState, LootContext.Builder builder) {
         return this.getDrops(blockState, new LootContextBuilder(builder));
     }
 
@@ -49,9 +48,9 @@ public abstract class AbstractHorizontalBlockImpl extends HorizontalDirectionalB
                 .put(ILootContextParam.EXPLOSION_RADIUS, LootContextParams.EXPLOSION_RADIUS)
                 .build();
 
-        private final LootParams.Builder builder;
+        private final LootContext.Builder builder;
 
-        public LootContextBuilder(LootParams.Builder builder) {
+        public LootContextBuilder(LootContext.Builder builder) {
             this.builder = builder;
         }
 

@@ -12,7 +12,7 @@ import net.minecraftforge.network.NetworkHooks;
 
 import java.util.function.Consumer;
 
-@Available("[1.19, )")
+@Available("[1.18, 1.19)")
 public interface AbstractForgeMenuType {
 
     static <T extends AbstractContainerMenu> MenuType<T> create(IContainerFactory<T> factory) {
@@ -20,6 +20,6 @@ public interface AbstractForgeMenuType {
     }
 
     static void openMenu(ServerPlayer player, MenuProvider containerSupplier, Consumer<FriendlyByteBuf> extraDataWriter) {
-        NetworkHooks.openScreen(player, containerSupplier, extraDataWriter);
+        NetworkHooks.openGui(player, containerSupplier, extraDataWriter);
     }
 }

@@ -1,23 +1,24 @@
 package extensions.net.minecraft.client.renderer.block.model.ItemTransforms;
 
-import manifold.ext.rt.api.Extension;
-import manifold.ext.rt.api.ThisClass;
 import moe.plushie.armourers_workshop.api.annotation.Available;
 import moe.plushie.armourers_workshop.compatibility.api.AbstractItemTransformType;
-import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+
+import manifold.ext.rt.api.Extension;
+import manifold.ext.rt.api.ThisClass;
 
 @Extension
-@Available("[1.20, )")
+@Available("[1.16, 1.20)")
 public class TypeConverter {
 
     private static final AbstractItemTransformType[] TYPES1 = AbstractItemTransformType.values();
-    private static final ItemDisplayContext[] TYPES2 = ItemDisplayContext.values();
+    private static final ItemTransforms.TransformType[] TYPES2 = ItemTransforms.TransformType.values();
 
-    public static ItemDisplayContext ofType(@ThisClass Class<?> clazz, AbstractItemTransformType transformType) {
+    public static ItemTransforms.TransformType ofType(@ThisClass Class<?> clazz, AbstractItemTransformType transformType) {
         return TYPES2[transformType.ordinal()];
     }
 
-    public static AbstractItemTransformType ofType(@ThisClass Class<?> clazz, ItemDisplayContext transformType) {
+    public static AbstractItemTransformType ofType(@ThisClass Class<?> clazz, ItemTransforms.TransformType transformType) {
         return TYPES1[transformType.ordinal()];
     }
 }

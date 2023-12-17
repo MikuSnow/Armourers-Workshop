@@ -26,6 +26,9 @@ configurations {
 
 repositories {
     maven { url = "https://modmaven.dev/" }
+    maven {
+        url = "https://maven.theillusivec4.top/"
+    }
     flatDir {
         dir 'run/mods-dev'
     }

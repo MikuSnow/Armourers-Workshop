@@ -7,10 +7,10 @@ import manifold.ext.rt.api.Extension;
 import manifold.ext.rt.api.This;
 
 @Extension
-@Available("[1.20, )")
+@Available("[1.16, 1.20)")
 public class PropertyProvider {
 
     public static boolean isReplaceable(@This BlockState state) {
-        return state.canBeReplaced();
+        return state.getMaterial().isReplaceable();
     }
 }

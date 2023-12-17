@@ -10,13 +10,14 @@ import net.minecraft.client.model.Model;
 import manifold.ext.rt.api.Extension;
 import manifold.ext.rt.api.This;
 import manifold.ext.rt.api.auto;
+import org.jetbrains.annotations.Nullable;
 
 @Extension
 @Available("[1.18, )")
 public class BabyPose {
 
     public static IModelBabyPose getBabyPose(@This Model model) {
-        auto model1 = ObjectUtils.safeCast(model, AgeableListModel.class);
+        @Nullable AgeableListModel model1 = ObjectUtils.safeCast(model, AgeableListModel.class);
         if (model1 == null) {
             return null;
         }

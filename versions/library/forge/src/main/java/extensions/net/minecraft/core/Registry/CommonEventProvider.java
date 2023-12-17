@@ -2,8 +2,6 @@ package extensions.net.minecraft.core.Registry;
 
 import com.mojang.brigadier.CommandDispatcher;
 import moe.plushie.armourers_workshop.api.annotation.Available;
-import moe.plushie.armourers_workshop.api.common.IArgumentSerializer;
-import moe.plushie.armourers_workshop.api.common.IArgumentType;
 import moe.plushie.armourers_workshop.builder.block.SkinCubeBlock;
 import moe.plushie.armourers_workshop.compatibility.AbstractArgumentTypeInfo;
 import moe.plushie.armourers_workshop.init.platform.forge.NotificationCenterImpl;
@@ -11,12 +9,8 @@ import moe.plushie.armourers_workshop.init.provider.CommonNativeProvider;
 import moe.plushie.armourers_workshop.utils.ObjectUtils;
 import moe.plushie.armourers_workshop.utils.TranslateUtils;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.synchronization.ArgumentTypeInfo;
-import net.minecraft.commands.synchronization.ArgumentTypeInfos;
-import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,17 +27,17 @@ import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.event.server.ServerLifecycleEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 
@@ -55,14 +49,14 @@ import java.util.function.Supplier;
 import manifold.ext.rt.api.Extension;
 import manifold.ext.rt.api.ThisClass;
 
-@Available("[1.19, )")
+@Available("[1.18, 1.19)")
 @Extension
 public class CommonEventProvider {
 
     public static void willServerTickFO(@ThisClass Class<?> clazz, Consumer<ServerLevel> consumer) {
-        NotificationCenterImpl.observer(TickEvent.LevelTickEvent.class, event -> {
+        NotificationCenterImpl.observer(TickEvent.WorldTickEvent.class, event -> {
             if (event.side == LogicalSide.SERVER) {
-                consumer.accept((ServerLevel) event.level);
+                consumer.accept((ServerLevel) event.world);
             }
         });
     }
@@ -85,26 +79,26 @@ public class CommonEventProvider {
 
 
     public static void willPlayerLoginFO(@ThisClass Class<?> clazz, Consumer<Player> consumer) {
-        NotificationCenterImpl.observer(PlayerEvent.PlayerLoggedInEvent.class, consumer, PlayerEvent::getEntity);
+        NotificationCenterImpl.observer(PlayerEvent.PlayerLoggedInEvent.class, consumer, PlayerEvent::getPlayer);
     }
 
     public static void willPlayerLogoutFO(@ThisClass Class<?> clazz, Consumer<Player> consumer) {
-        NotificationCenterImpl.observer(PlayerEvent.PlayerLoggedOutEvent.class, consumer, PlayerEvent::getEntity);
+        NotificationCenterImpl.observer(PlayerEvent.PlayerLoggedOutEvent.class, consumer, PlayerEvent::getPlayer);
     }
 
     public static void willPlayerCloneFO(@ThisClass Class<?> clazz, BiConsumer<Player, Player> consumer) {
-        NotificationCenterImpl.observer(PlayerEvent.Clone.class, event -> consumer.accept(event.getOriginal(), event.getEntity()));
+        NotificationCenterImpl.observer(PlayerEvent.Clone.class, event -> consumer.accept(event.getOriginal(), event.getPlayer()));
     }
 
     public static void didEntityTackingFO(@ThisClass Class<?> clazz, BiConsumer<Entity, Player> consumer) {
         NotificationCenterImpl.observer(PlayerEvent.StartTracking.class, event -> {
-            consumer.accept(event.getTarget(), event.getEntity());
+            consumer.accept(event.getTarget(), event.getPlayer());
         });
     }
 
     public static void shouldEntityAttackFO(@ThisClass Class<?> clazz, BiFunction<Entity, Player, InteractionResult> consumer) {
         NotificationCenterImpl.observer(AttackEntityEvent.class, event -> {
-            if (consumer.apply(event.getTarget(), event.getEntity()) == InteractionResult.FAIL) {
+            if (consumer.apply(event.getTarget(), event.getPlayer()) == InteractionResult.FAIL) {
                 event.setCanceled(true);
             }
         });
@@ -115,8 +109,8 @@ public class CommonEventProvider {
     }
 
     public static void didEntityJoinFO(@ThisClass Class<?> clazz, Consumer<Entity> consumer) {
-        NotificationCenterImpl.observer(EntityJoinLevelEvent.class, event -> {
-            if (!event.getLevel().isClientSide()) {
+        NotificationCenterImpl.observer(EntityJoinWorldEvent.class, event -> {
+            if (!event.getWorld().isClientSide()) {
                 consumer.accept(event.getEntity());
             }
         });
@@ -127,11 +121,11 @@ public class CommonEventProvider {
             Block block = event.getState().getBlock();
             if (event.getEntity() instanceof ServerPlayer && block instanceof SkinCubeBlock) {
                 Player player = (Player) event.getEntity();
-                LevelAccessor level = event.getLevel();
-                BlockState oldBlockState = event.getBlockSnapshot().getReplacedBlock();
+                LevelAccessor level = event.getWorld();
+                BlockState oldState = event.getBlockSnapshot().getReplacedBlock();
                 CompoundTag oldTag = event.getBlockSnapshot().getTag();
                 Component reason = TranslateUtils.title("chat.armourers_workshop.undo.placeBlock");
-                consumer.snapshot(level, event.getPos(), oldBlockState, oldTag, player, reason);
+                consumer.snapshot(level, event.getPos(), oldState, oldTag, player, reason);
             }
         });
     }
@@ -140,7 +134,7 @@ public class CommonEventProvider {
         NotificationCenterImpl.observer(BlockEvent.BreakEvent.class, event -> {
             Block block = event.getState().getBlock();
             if (event.getPlayer() instanceof ServerPlayer && block instanceof SkinCubeBlock) {
-                LevelAccessor level = event.getLevel();
+                LevelAccessor level = event.getWorld();
                 BlockEntity blockEntity = level.getBlockEntity(event.getPos());
                 CompoundTag oldNBT = null;
                 if (blockEntity != null) {
@@ -175,12 +169,6 @@ public class CommonEventProvider {
     }
 
     public static void willRegisterArgumentFO(@ThisClass Class<?> clazz, Consumer<CommonNativeProvider.ArgumentRegistry> consumer) {
-        consumer.accept(new CommonNativeProvider.ArgumentRegistry() {
-            @Override
-            public <T extends IArgumentType<?>> void register(ResourceLocation registryName, Class<T> argumentType, IArgumentSerializer<T> argumentSerializer) {
-                ArgumentTypeInfo<?, ?> info1 = ArgumentTypeInfos.registerByClass(argumentType, new AbstractArgumentTypeInfo<>(argumentSerializer));
-                Registry.registerCommandArgumentTypeFO(registryName.getPath(), () -> info1);
-            }
-        });
+        consumer.accept(AbstractArgumentTypeInfo::register);
     }
 }

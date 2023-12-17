@@ -7,14 +7,13 @@ import manifold.ext.rt.api.Extension;
 import manifold.ext.rt.api.This;
 
 @Extension
-@Available("[1.20, )")
+@Available("[1.16, 1.20)")
 public class AnimationModifier {
 
     public static void applyLimitLimbs(@This LivingEntity entity) {
-        if (entity.walkAnimation.speed() > 0.25f) {
-            entity.walkAnimation.setSpeed(0.25f);
-            entity.walkAnimation.update(0, 1); // keep position and set speedOld
-            entity.walkAnimation.setSpeed(0.25f);
+        if (entity.animationSpeed > 0.25F) {
+            entity.animationSpeed = 0.25F;
+            entity.animationSpeedOld = 0.25F;
         }
     }
 }
