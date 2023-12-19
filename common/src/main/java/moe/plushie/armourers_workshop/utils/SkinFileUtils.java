@@ -1,21 +1,18 @@
 package moe.plushie.armourers_workshop.utils;
 
+import moe.plushie.armourers_workshop.core.skin.Skin;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.TagParser;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 /**
  * because `commons.io` versions on some servers are too low,
@@ -178,6 +175,14 @@ public class SkinFileUtils {
 
             return tag;
         }
+    }
+
+    public static Skin readSkin(ResourceLocation resourceLocation) throws Exception {
+        ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
+        InputStream inputStream = resourceManager.getResource(resourceLocation).getInputStream();
+        Skin skin = SkinFileStreamUtils.loadSkinFromStream2(inputStream);
+
+        return skin;
     }
 
     public static CompoundTag readNBT(String contents) {

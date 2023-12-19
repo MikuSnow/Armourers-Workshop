@@ -10,6 +10,7 @@ import moe.plushie.armourers_workshop.core.client.render.HighlightPlacementRende
 import moe.plushie.armourers_workshop.core.data.LocalDataService;
 import moe.plushie.armourers_workshop.core.data.color.ColorScheme;
 import moe.plushie.armourers_workshop.core.data.slot.SkinSlotType;
+import moe.plushie.armourers_workshop.core.skin.Skin;
 import moe.plushie.armourers_workshop.core.skin.SkinDescriptor;
 import moe.plushie.armourers_workshop.core.skin.SkinLoader;
 import moe.plushie.armourers_workshop.core.skin.data.SkinServerType;
@@ -140,11 +141,23 @@ public class ClientProxyImpl {
             if (wardrobe == null) {
                 ModLog.info("衣橱为空！");
             } else {
-                SkinDescriptor descriptor = SkinLoader.getInstance().loadSkinFromDB("/downloads/17756 - Kasodani Kyouko 幽谷响子.armour", ColorScheme.EMPTY, false);
+                ModLog.info("Setting Skin!!!!!!!!!!!!!!!!");
+//                SkinDescriptor descriptor = SkinLoader.getInstance().loadSkinFromDB("/downloads/17756 - Kasodani Kyouko 幽谷响子.armour", ColorScheme.EMPTY, false);
+                SkinDescriptor descriptor = loadSkinFromDB("/skins/suit/xiwangzhiguang.armour", ColorScheme.EMPTY);
                 ItemStack itemStack = descriptor.asItemStack();
                 wardrobe.setItem(SkinSlotType.OUTFIT, 0, itemStack);
             }
         });
         context.setPacketHandled(true);
+    }
+
+
+
+    public static SkinDescriptor loadSkinFromDB(String identifier, ColorScheme scheme) {
+        Skin skin = LocalDataService.localSkins.get(identifier);
+        if (skin != null) {
+            return new SkinDescriptor(identifier, skin.getType(), scheme);
+        }
+        return SkinDescriptor.EMPTY;
     }
 }

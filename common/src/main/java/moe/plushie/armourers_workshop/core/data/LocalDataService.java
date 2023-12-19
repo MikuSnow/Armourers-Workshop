@@ -1,5 +1,6 @@
 package moe.plushie.armourers_workshop.core.data;
 
+import moe.plushie.armourers_workshop.api.common.IResourceManager;
 import moe.plushie.armourers_workshop.api.skin.ISkinType;
 import moe.plushie.armourers_workshop.core.skin.Skin;
 import moe.plushie.armourers_workshop.core.skin.SkinTypes;
@@ -8,7 +9,10 @@ import moe.plushie.armourers_workshop.init.ModLog;
 import moe.plushie.armourers_workshop.utils.SkinFileUtils;
 import moe.plushie.armourers_workshop.utils.SkinFileStreamUtils;
 import moe.plushie.armourers_workshop.utils.SkinUUID;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -18,9 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
 
 public class LocalDataService {
 
@@ -28,6 +30,7 @@ public class LocalDataService {
 
     private final File rootPath;
     private final HashMap<String, Node> nodes = new HashMap<>();
+    public static HashMap<String, Skin> localSkins;
     private String lastGenUUID = "";
 
     public LocalDataService(File rootPath) {
@@ -35,6 +38,7 @@ public class LocalDataService {
         // data migration for the internal-test version, and will be removed in later versions.
         this.loadLegacyNodes();
         this.loadNodes();
+        this.listResources();
     }
 
     public static LocalDataService getInstance() {
@@ -93,6 +97,29 @@ public class LocalDataService {
         if (files != null) {
             for (File file : files) {
                 loadNode(file);
+            }
+        }
+    }
+
+    public void listResources() {
+        ModLog.info("starting listResources!");
+        localSkins = new HashMap<>();
+        ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
+        // 指定资源的命名空间和目录
+        String namespace = "armourers_workshop";
+        String path = "skins/";
+
+        // 获取所有资源
+        Collection<ResourceLocation> resourceLocations = resourceManager.listResources(path, s -> s.endsWith(".armour"));
+        for (ResourceLocation location : resourceLocations) {
+            if (location.getNamespace().equals(namespace)) {
+                try {
+                    Skin skin = SkinFileUtils.readSkin(location);
+                    localSkins.put(location.getPath(), skin);
+                    ModLog.info("load skin : {} , {}", location.getPath(), skin.getCustomName());
+                } catch (Exception e) {
+                    ModLog.error("can't load file: {}, pls try fix or remove it.", location);
+                }
             }
         }
     }
