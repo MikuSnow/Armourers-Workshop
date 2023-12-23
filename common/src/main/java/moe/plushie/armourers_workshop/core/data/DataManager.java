@@ -4,6 +4,9 @@ import moe.plushie.armourers_workshop.init.ModLog;
 import moe.plushie.armourers_workshop.init.platform.EnvironmentManager;
 import moe.plushie.armourers_workshop.utils.Constants;
 import moe.plushie.armourers_workshop.utils.SkinFileUtils;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -129,6 +132,11 @@ public class DataManager {
 
     public InputStream loadSkinData(String identifier) throws IOException {
         ModLog.debug("'{}' => get skin input stream from data manager", identifier);
+        if (identifier.startsWith("rp:")) {
+            ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
+            return resourceManager.getResource(new ResourceLocation("armourers_workshop", identifier.replace("rp:", ""))).getInputStream();
+        }
+
         if (DataDomain.isDatabase(identifier)) {
             String path = DataDomain.getPath(identifier);
             return LocalDataService.getInstance().getFile(path);

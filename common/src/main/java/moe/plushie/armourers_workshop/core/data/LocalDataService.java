@@ -115,7 +115,7 @@ public class LocalDataService {
             if (location.getNamespace().equals(namespace)) {
                 try {
                     Skin skin = SkinFileUtils.readSkin(location);
-                    localSkins.put(location.getPath(), skin);
+                    localSkins.put("rp:" + location.getPath(), skin);
                     ModLog.info("load skin : {} , {}", location.getPath(), skin.getCustomName());
                 } catch (Exception e) {
                     ModLog.error("can't load file: {}, pls try fix or remove it.", location);

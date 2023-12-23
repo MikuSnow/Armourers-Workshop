@@ -137,14 +137,27 @@ public class ClientProxyImpl {
             if (Minecraft.getInstance().player == null) {
                 return;
             }
+            JsonObject mapInfo = JsonParser.parseString(str).getAsJsonObject();
+
+            if (!mapInfo.has("plugin") || !mapInfo.has("event") || !mapInfo.has("data")) {
+                return;
+            }
+
+            String plugin = mapInfo.get("plugin").getAsString();
+
+            String eventName = mapInfo.get("event").getAsString();
+            JsonObject data = mapInfo.getAsJsonObject("data");
+
+
             SkinWardrobe wardrobe = SkinWardrobe.of(Minecraft.getInstance().player);
             if (wardrobe == null) {
                 ModLog.info("衣橱为空！");
             } else {
                 ModLog.info("Setting Skin!!!!!!!!!!!!!!!!");
-//                SkinDescriptor descriptor = SkinLoader.getInstance().loadSkinFromDB("/downloads/17756 - Kasodani Kyouko 幽谷响子.armour", ColorScheme.EMPTY, false);
-                SkinDescriptor descriptor = loadSkinFromDB("/skins/suit/xiwangzhiguang.armour", ColorScheme.EMPTY);
+                SkinDescriptor descriptor = loadSkinFromDB("rp:skins/suit/xiwangzhiguang.armour");
+                ModLog.info("descriptor " + descriptor.getType());
                 ItemStack itemStack = descriptor.asItemStack();
+                ModLog.info("itemStack " + itemStack);
                 wardrobe.setItem(SkinSlotType.OUTFIT, 0, itemStack);
             }
         });
@@ -153,10 +166,12 @@ public class ClientProxyImpl {
 
 
 
-    public static SkinDescriptor loadSkinFromDB(String identifier, ColorScheme scheme) {
+    public static SkinDescriptor loadSkinFromDB(String identifier) {
         Skin skin = LocalDataService.localSkins.get(identifier);
+        ModLog.info("skin " + skin);
+        ModLog.info("LocalDataService.localSkins " + LocalDataService.localSkins);
         if (skin != null) {
-            return new SkinDescriptor(identifier, skin.getType(), scheme);
+            return new SkinDescriptor(identifier, skin.getType(), ColorScheme.EMPTY);
         }
         return SkinDescriptor.EMPTY;
     }
