@@ -23,6 +23,9 @@ import moe.plushie.armourers_workshop.init.environment.EnvironmentType;
 import moe.plushie.armourers_workshop.init.platform.EnvironmentManager;
 import moe.plushie.armourers_workshop.init.platform.forge.NotificationCenterImpl;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.TextComponent;
@@ -33,6 +36,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderArmEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 
@@ -44,11 +49,13 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.function.Supplier;
 
 @OnlyIn(Dist.CLIENT)
 public class ClientProxyImpl {
     private static SimpleChannel channel;
+    private static HashMap<UUID, HashMap<String, String>> playerFashions;
 
     public static void init() {
         EnvironmentExecutor.willInit(EnvironmentType.CLIENT);
@@ -120,6 +127,7 @@ public class ClientProxyImpl {
         SkinLoader.getInstance().prepare(SkinServerType.CLIENT);
         SkinLoader.getInstance().start();
         channel.registerMessage(233, String.class, ClientProxyImpl::enc, ClientProxyImpl::dec, ClientProxyImpl::proc);
+        playerFashions = new HashMap<>();
     }
 
     private static void enc(String str, FriendlyByteBuf buffer) {
@@ -148,31 +156,108 @@ public class ClientProxyImpl {
             String eventName = mapInfo.get("event").getAsString();
             JsonObject data = mapInfo.getAsJsonObject("data");
 
-
-            SkinWardrobe wardrobe = SkinWardrobe.of(Minecraft.getInstance().player);
-            if (wardrobe == null) {
-                ModLog.info("衣橱为空！");
-            } else {
-                ModLog.info("Setting Skin!!!!!!!!!!!!!!!!");
-                SkinDescriptor descriptor = loadSkinFromDB("rp:skins/suit/xiwangzhiguang.armour");
-                ModLog.info("descriptor " + descriptor.getType());
-                ItemStack itemStack = descriptor.asItemStack();
-                ModLog.info("itemStack " + itemStack);
-                wardrobe.setItem(SkinSlotType.OUTFIT, 0, itemStack);
+            if ("equipFashionEvent".equals(eventName)) {
+                equip(data);
             }
         });
         context.setPacketHandled(true);
+    }
+
+    private static void equip(JsonObject data) {
+        Minecraft mc = Minecraft.getInstance();
+        ClientLevel level = mc.level;
+        LocalPlayer self = mc.player;
+        if (level == null || self == null) {
+            return;
+        }
+
+        System.out.println("equip #1 -> ");
+        String uuid = data.get("uuid").getAsString();
+        AbstractClientPlayer player = null;
+
+        UUID targetUUID = UUID.fromString(uuid);
+        if (self.getUUID().equals(targetUUID)) {
+            player = self;
+        } else {
+            for (AbstractClientPlayer p : level.players()) {
+                if (p.getUUID().equals(targetUUID)) {
+                    player = p;
+                    break;
+                }
+            }
+        }
+        String path = data.get("fashion").getAsString();
+        String type = data.get("group").getAsString();
+        if (playerFashions == null) {
+            playerFashions = new HashMap<>();
+        }
+        HashMap<String, String> playerInfo = playerFashions.getOrDefault(targetUUID, new HashMap<>());
+        playerInfo.put(type, path);
+        playerFashions.put(targetUUID, playerInfo);
+
+        if (player == null) {
+            return;
+        }
+        SkinWardrobe wardrobe = SkinWardrobe.of(player);
+        if (wardrobe == null) {
+            ModLog.info("衣橱为空！");
+            return;
+        }
+        wardrobe.clear();
+        for (Map.Entry<String, String> fs : playerInfo.entrySet()) {
+            String k = fs.getKey();
+            String v = fs.getValue();
+
+            // data -> {"equip":true,"uuid":"c66e6f3c-8be2-3dfe-9cb5-d758be4d0ee5","fashion":"suit/fox.armour"}
+            SkinSlotType st = "suit".equals(k) ? SkinSlotType.OUTFIT : "suitaddon".equals(k) ? SkinSlotType.WINGS : null;
+            if (st == null) {
+                return;
+            }
+
+            SkinDescriptor descriptor = loadSkinFromDB("rp:skins/" + v);
+            ItemStack itemStack = descriptor.asItemStack();
+            wardrobe.setItem(st, 0, itemStack);
+        }
+
     }
 
 
 
     public static SkinDescriptor loadSkinFromDB(String identifier) {
         Skin skin = LocalDataService.localSkins.get(identifier);
-        ModLog.info("skin " + skin);
-        ModLog.info("LocalDataService.localSkins " + LocalDataService.localSkins);
         if (skin != null) {
             return new SkinDescriptor(identifier, skin.getType(), ColorScheme.EMPTY);
         }
         return SkinDescriptor.EMPTY;
+    }
+
+    @SubscribeEvent
+    public void onJoinWorld(EntityJoinWorldEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            UUID uuid = player.getUUID();
+            HashMap<String, String> playerInfo = playerFashions.get(uuid);
+            if (playerInfo == null) {
+                return;
+            }
+            SkinWardrobe wardrobe = SkinWardrobe.of(player);
+            if (wardrobe == null) {
+                ModLog.info("衣橱为空！");
+                return;
+            }
+            wardrobe.clear();
+            for (Map.Entry<String, String> fs : playerInfo.entrySet()) {
+                String k = fs.getKey();
+                String v = fs.getKey();
+
+                SkinSlotType st = "suit".equals(k) ? SkinSlotType.OUTFIT : "suitaddon".equals(k) ? SkinSlotType.WINGS : null;
+                if (st == null) {
+                    return;
+                }
+
+                SkinDescriptor descriptor = loadSkinFromDB("rp:skins/" + v);
+                ItemStack itemStack = descriptor.asItemStack();
+                wardrobe.setItem(st, 0, itemStack);
+            }
+        }
     }
 }

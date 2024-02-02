@@ -64,10 +64,10 @@ public class SkinWardrobeLayer<T extends Entity, V extends EntityModel<T>, M ext
         }
 
         // render the contributor
-        ModContributors.Contributor contributor = ModContributors.by(entity);
-        if (contributor != null && renderData.shouldRenderExtra()) {
-            renderMagicCircle(poseStack1, buffers, entity.tickCount + entity.getId() * 31, partialTicks, 24, contributor.color, packedLightIn, OverlayTexture.NO_OVERLAY);
-        }
+//        ModContributors.Contributor contributor = ModContributors.by(entity);
+//        if (contributor != null && renderData.shouldRenderExtra()) {
+//            renderMagicCircle(poseStack1, buffers, entity.tickCount + entity.getId() * 31, partialTicks, 24, contributor.color, packedLightIn, OverlayTexture.NO_OVERLAY);
+//        }
 
         float f = 1 / 16f;
         poseStack.scale(f, f, f);

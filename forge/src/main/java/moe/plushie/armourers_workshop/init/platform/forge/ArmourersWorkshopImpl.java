@@ -5,6 +5,7 @@ import moe.plushie.armourers_workshop.init.ModConstants;
 import moe.plushie.armourers_workshop.init.platform.forge.proxy.ClientProxyImpl;
 import moe.plushie.armourers_workshop.init.platform.forge.proxy.CommonProxyImpl;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 
@@ -16,6 +17,7 @@ public class ArmourersWorkshopImpl {
       // start event dispatcher
         CommonProxyImpl.init();
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> ClientProxyImpl::init);
+        MinecraftForge.EVENT_BUS.register(new ClientProxyImpl());
     }
 }
 
